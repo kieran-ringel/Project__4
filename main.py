@@ -13,7 +13,7 @@ def main():
     cancer = Org('Data/breast-cancer-wisconsin.data', [-1], -1, [-1])
     df = cancer.open()
     # ##NN(file, number hidden layers, number hidden nodes per layer)
-    NeuralNet(df, 0, 10, 'classification')
+    NeuralNet(df, 1, 5, 'classification')
     print(df)
 
     # print('glass')
@@ -31,11 +31,11 @@ def main():
     # df = abalone.open()
     # print(df)
 
-    print('machine')
-    machine = Org('Data/machine.data', [-1], -1, [-1])
-    df = machine.open()
-    NeuralNet(df, 2, 3, 'regression')
-    print(df)
+   # print('machine')
+    #machine = Org('Data/machine.data', [-1], -1, [-1])
+    #df = machine.open()
+    #NeuralNet(df, 2, 3, 'regression')
+    #print(df)
 
     # print('forest')
     # forest = Org('Data/forestfires.data', [0], -1, [2,3])
