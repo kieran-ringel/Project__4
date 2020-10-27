@@ -9,7 +9,6 @@ class NeuralNet():
         self.hnodes = hnodes
         self.classification = classification
         self.NN = self.initNN(file, hlayers, hnodes, classification)
-        print(self.NN)
         self.tenfold(file)
 
     def initNN(self, file, hlayers, hnodes, classification):
@@ -44,7 +43,7 @@ class NeuralNet():
            #print("\n")
            node_values = self.feedforward(trainpoints)
            error = self.backerror(node_values, trainpoints['class'])
-           self.backpropagate(error[1], node_values)
+           self.backpropagate(error, node_values)
 
     def test(self, test):
         pass
@@ -94,57 +93,41 @@ class NeuralNet():
         if self.classification == 'regression':     #linear activation CHNAGE???
             return dot
 
-    def error(self, output, expected):
-        if self.classification == 'classification': #cross entropy
-            tot_error = 0
-            errorarr = []
-            for prob in output[-1]:
-                outputindex = output[-1].index(prob)
-                inputindex = self.classes.index(expected)
-                if outputindex == inputindex:
-                    rt = 1
-                if outputindex != inputindex:
-                    rt = 0
-                tot_error += (rt * math.log(prob)) + ((1 - rt) * math.log(1-prob))
-                errorarr.append(tot_error)
-            return([tot_error, errorarr])
-        if self.classification == 'regression':     #squared error
-            pass
-
     def backerror(self, output, expected):
-        #print(self.NN)
-        if self.classification == 'classification': #cross entropy
-            tot_error = 0
-            errorarr = []
-            for layer in reversed(range(len(output))):
-                layererror = []
+        tot_error = 0
+        errorarr = []
+        for layer in reversed(range(len(output))):
+            layererror = []
+            if output[-1] == output[layer]:
+                nodeerror = []
                 for node in range(len(output[layer])):
-                    nodeerror = []
-                    print('node', node)
-                    if output[-1] == output[layer]:
-                        outputindex = output[layer].index(output[layer][node])
-                        inputindex = self.classes.index(expected)
-                        if outputindex == inputindex:
-                            rt = 1
-                        if outputindex != inputindex:
-                            rt = 0
-                        error = (rt * math.log(output[layer][node])) + ((1 - rt) * math.log(1-output[layer][node]))
-                        tot_error += error
-                        layererror.append(error)
-                        print(layererror)
-
-                    #print(nodeerror)
-                    for weight in range(len(self.NN[layer][node])):
-                        #print(errorarr[layer - 1])
-                        #print('node',node)
-                        error = self.NN[layer][node][weight] * layererror[0]
+                    outputindex = output[layer].index(output[layer][node])
+                    inputindex = self.classes.index(expected)
+                    if outputindex == inputindex:
+                        rt = 1
+                    if outputindex != inputindex:
+                        rt = 0
+                    error = rt - output[layer][node]
+                    tot_error += error
+                    nodeerror.append(error)
+            else:
+                print('here', layer)
+                for node in range(len(output[layer])):
+                    error = 0
+                    for errornode in range(len(output[layer - 1])):
+                        for weight in reversed(range(len(self.NN[layer][node]))):
+                            error += self.NN[layer][node][weight] * errorarr[layer - 1][errornode]
                         nodeerror.append(error)
-                    layererror.append(nodeerror)
-                errorarr.append(layererror)
 
-            return([tot_error, errorarr])
-        if self.classification == 'regression':     #squared error
-            pass
+            for node in range(len(output[layer])):
+                newerror = nodeerror[node] * self.derivative(output[layer][node])
+                layererror.append(newerror)
+            errorarr.append(layererror)
+        return(errorarr)
+
+    def derivative(self, output):
+        if self.classification == 'classification':
+            return output * (1 - output)
 
 
 
