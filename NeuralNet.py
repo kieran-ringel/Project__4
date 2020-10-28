@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import math
+
 from NN import NN
 class NeuralNet():
     def __init__(self, file, hlayers, hnodes, classification):
@@ -8,7 +8,7 @@ class NeuralNet():
         self.hlayers = hlayers
         self.hnodes = hnodes
         self.classification = classification
-        self.NN = self.initNN(file, hlayers, hnodes, classification)
+        self.initialNN = self.initNN(file, hlayers, hnodes, classification)
         self.tenfold(file)
 
     def initNN(self, file, hlayers, hnodes, classification):
@@ -37,13 +37,15 @@ class NeuralNet():
             train.reset_index(drop=True, inplace=True)  #resets index on both
             test.reset_index(drop=True, inplace=True)
             self.train(train)
+            self.test(test)
 
     def train(self, train):
+        self.NN = self.initialNN
         for row, trainpoints in train.iterrows():    #iterate through training data points
-           #print("\n")
            node_values = self.feedforward(trainpoints)
            error = self.backerror(node_values, trainpoints['class'])
-           self.backpropagate(error, node_values)
+           self.backpropagate(error, node_values, trainpoints)
+        print(self.NN)
 
     def test(self, test):
         pass
@@ -55,8 +57,13 @@ class NeuralNet():
                 node_vals = list(trainpoint[:-1])
             else:
                 node_vals = new_node_vals
+
+
             new_node_vals = []
             for node in range(len(self.NN[layer])):
+                print('/n')
+                print(self.NN[layer][node][:-1])
+                print(node_vals)
                 cur_node = np.dot(self.NN[layer][node][:-1], node_vals) + self.NN[layer][node][-1]
                 new_node_vals.append(cur_node)
             new_node_vals = self.activation(new_node_vals)
@@ -70,15 +77,36 @@ class NeuralNet():
         return(outputarray)
 
 
-    def backpropagate(self, error, node_values):
+    def backpropagate(self, deltas, node_values, trainpoints):
         eta = .7        #learning rate
-        self.deltaW(eta, error, node_values)
+        change = self.deltaW(eta, deltas, node_values, trainpoints)
+        self.NN = np.add(self.NN, change)
 
-    def deltaW(self, learn_rate, error, node_values):
+    def deltaW(self, learn_rate, deltas, node_values, trainpoints):
+        change = []
         for layer in reversed(range(len(self.NN))):
-            for node in range(len(self.NN[layer])):
-                for weight in range(len(self.NN[layer][node])):
-                    learn_rate * 1
+            layernode_change = []
+            if layer != 0:
+                for node in range(len(self.NN[layer])):
+                    node_change = []
+                    for inputnode in range(len(node_values[layer-1])):
+                        weight_change = learn_rate * deltas[layer][node] * node_values[layer-1][inputnode]
+                        node_change.append(weight_change)
+                    node_change.append(learn_rate * deltas[layer][node])    #for bias node, since input value would be a 1
+                    layernode_change.append(node_change)
+                change.insert(0, layernode_change)
+                #print(change)
+            if layer == 0:
+                for node in range(len(self.NN[layer])):
+                    node_change = []
+                    for inputnode in range(len(trainpoints[:-1])):
+                        weight_change = learn_rate * deltas[layer][node] * trainpoints[inputnode]
+                        node_change.append((weight_change))
+                    node_change.append(learn_rate * deltas[layer][node])  # for bias node, since input value would be a 1
+                    layernode_change.append(node_change)
+                change.insert(0, layernode_change)
+        return(change)
+
 
     def softmax(self, new_node_vals):
         exp = np.exp(new_node_vals)
@@ -98,7 +126,7 @@ class NeuralNet():
         errorarr = []
         for layer in reversed(range(len(output))):
             layererror = []
-            if output[-1] == output[layer]:
+            if output[-1] == output[layer]: #if output layer, calculate error of output nodes
                 nodeerror = []
                 for node in range(len(output[layer])):
                     outputindex = output[layer].index(output[layer][node])
@@ -110,19 +138,18 @@ class NeuralNet():
                     error = rt - output[layer][node]
                     tot_error += error
                     nodeerror.append(error)
-            else:
-                print('here', layer)
+            else:   #if hidden layer use delta rule to calculate delta or error of hidden nodes
                 for node in range(len(output[layer])):
                     error = 0
                     for errornode in range(len(output[layer - 1])):
                         for weight in reversed(range(len(self.NN[layer][node]))):
-                            error += self.NN[layer][node][weight] * errorarr[layer - 1][errornode]
+                            error += self.NN[layer][node][weight] * errorarr[layer - 1][errornode]  #summation of weight between node and node of next layer multiplied by error of next node
                         nodeerror.append(error)
 
             for node in range(len(output[layer])):
                 newerror = nodeerror[node] * self.derivative(output[layer][node])
                 layererror.append(newerror)
-            errorarr.append(layererror)
+            errorarr.insert(0, layererror)
         return(errorarr)
 
     def derivative(self, output):
