@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import math
 
 from NN import NN
 class NeuralNet():
@@ -45,10 +46,29 @@ class NeuralNet():
            node_values = self.feedforward(trainpoints)
            error = self.backerror(node_values, trainpoints['class'])
            self.backpropagate(error, node_values, trainpoints)
-        print(self.NN)
 
     def test(self, test):
-        pass
+        tot_error = 0
+        tot = 0
+        for row, testpoints in test.iterrows():
+            node_values = self.feedforward(testpoints)
+            tot_error += self.calcerror(node_values[-1], testpoints['class'])
+            if self.classes.index(testpoints['class']) == node_values[-1].index(max(node_values[-1])):
+                tot += 1
+        print(tot/len(test))
+        print(-tot_error)
+
+    def calcerror(self, output, expected):
+        error = 0
+        for node in range(len(output)):
+            outputindex = output.index(output[node])
+            inputindex = self.classes.index(expected)
+            if outputindex == inputindex:
+                rt = 1
+            if outputindex != inputindex:
+                rt = 0
+            error += (rt * math.log(output[node])) + ((1 - rt) * math.log(1 - output[node]))
+        return(error)
 
     def feedforward(self, trainpoint):
         outputarray = []
@@ -57,13 +77,8 @@ class NeuralNet():
                 node_vals = list(trainpoint[:-1])
             else:
                 node_vals = new_node_vals
-
-
             new_node_vals = []
             for node in range(len(self.NN[layer])):
-                print('/n')
-                print(self.NN[layer][node][:-1])
-                print(node_vals)
                 cur_node = np.dot(self.NN[layer][node][:-1], node_vals) + self.NN[layer][node][-1]
                 new_node_vals.append(cur_node)
             new_node_vals = self.activation(new_node_vals)
@@ -80,7 +95,10 @@ class NeuralNet():
     def backpropagate(self, deltas, node_values, trainpoints):
         eta = .7        #learning rate
         change = self.deltaW(eta, deltas, node_values, trainpoints)
-        self.NN = np.add(self.NN, change)
+        for layer in range(len(self.NN)):
+            for node in range(len(self.NN[layer])):
+                for weight in range(len(self.NN[layer][node])):
+                    self.NN[layer][node][weight] += change[layer][node][weight]
 
     def deltaW(self, learn_rate, deltas, node_values, trainpoints):
         change = []
@@ -95,7 +113,6 @@ class NeuralNet():
                     node_change.append(learn_rate * deltas[layer][node])    #for bias node, since input value would be a 1
                     layernode_change.append(node_change)
                 change.insert(0, layernode_change)
-                #print(change)
             if layer == 0:
                 for node in range(len(self.NN[layer])):
                     node_change = []
@@ -118,7 +135,7 @@ class NeuralNet():
     def activation(self, dot):
         if self.classification == "classification":
             return 1/(1 + np.exp(np.negative(dot)))
-        if self.classification == 'regression':     #linear activation CHNAGE???
+        if self.classification == 'regression':
             return dot
 
     def backerror(self, output, expected):

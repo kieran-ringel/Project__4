@@ -45,10 +45,14 @@ class Org():
         return(df)      #returns edited file
 
     def missingData(self, df):      #CHANGEEEE
+        print(df)
         for column in range(df.shape[1] - 1):
             for row in range(df.shape[0]):
                 if df[column][row] == '?':
-                    df[column][row] = 1
+                    dataclass = df['class'][row]
+                    newdf = 
+                    mode = df[column].mode()
+                    print(mode[0])
                     #df[column][row] = random.choice(df[column])
         return(df)
 

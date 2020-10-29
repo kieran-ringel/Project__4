@@ -14,12 +14,11 @@ def main():
     df = cancer.open()
     # ##NN(file, number hidden layers, number hidden nodes per layer)
     NeuralNet(df, 1, 5, 'classification')
-    print(df)
 
-    # print('glass')
-    # glass = Org('Data/glass.data', [-1], -1, [-1])
-    # df = glass.open()
-    # print(df)
+    print('glass')
+    glass = Org('Data/glass.data', [-1], -1, [-1])
+    df = glass.open()
+    NeuralNet(df, 1, 5, 'classification')
 
     # print('soybean')
     # soybean = Org('Data/soybean-small.data', [-1], -1, [-1])

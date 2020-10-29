@@ -1,5 +1,5 @@
 from Layer import Layer
-class NN():
+class NN:
     def __init__(self, input, hlayers, hnodes, output):
         self.input = input
         self.hlayers = hlayers
