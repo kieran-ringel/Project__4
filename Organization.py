@@ -36,24 +36,19 @@ class Org():
             df = df.drop(0, axis=1)                 #remove vendor name
             df = df.drop(1, axis=1)                 #remove model name CHECK
             df = df.drop(9, axis=1)                 #remove column with ERP
-            df = df.reset_index(drop=True)          #reset acis
+            df = df.reset_index(drop=True)          #reset axis
 
         df.columns = range(df.shape[1])
         df.columns = [*df.columns[:-1], "class"]    #give column containing class label 'class'
-        newdf = self.missingData(df)
-        df = self.normalize(newdf)
+        df = self.missingData(df)
+        df = self.normalize(df)
         return(df)      #returns edited file
 
-    def missingData(self, df):      #CHANGEEEE
-        print(df)
+    def missingData(self, df):
         for column in range(df.shape[1] - 1):
             for row in range(df.shape[0]):
                 if df[column][row] == '?':
-                    dataclass = df['class'][row]
-                    newdf = 
-                    mode = df[column].mode()
-                    print(mode[0])
-                    #df[column][row] = random.choice(df[column])
+                    df[column][row] = df[df['class'] == df['class'][row]][column].mode()
         return(df)
 
     def normalize(self, file):

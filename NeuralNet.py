@@ -3,18 +3,23 @@ import numpy as np
 import math
 
 from NN import NN
-class NeuralNet():
+class NeuralNet:
     def __init__(self, file, hlayers, hnodes, classification):
+        print('hidden layers', hlayers)
+        print('hidden nodes', hnodes)
         self.file = file
         self.hlayers = hlayers
         self.hnodes = hnodes
+        self.pastError = None
         self.classification = classification
         self.initialNN = self.initNN(file, hlayers, hnodes, classification)
         self.tenfold(file)
 
+
     def initNN(self, file, hlayers, hnodes, classification):
         input = file.shape[1] - 1
         if classification == 'regression':
+            print('init')
             output = 1
         if classification == 'classification':
             self.classes = list(file['class'].unique())
@@ -24,10 +29,10 @@ class NeuralNet():
 
     def tenfold(self, file):
         # 10 fold cross validation by getting every 10th data point of the sorted data
+        avgerror = 0
         fold = [None] * 10
-        for cv in range(10): #CHANGE VAD TO 10
+        for cv in range(10):
             to_test = file.iloc[cv::10]
-            #to_test.reset_index(drop=True, inplace=True)
             fold[cv] = to_test
 
         for foldnum in range(10):  # get test and train datasets
@@ -38,36 +43,41 @@ class NeuralNet():
             train.reset_index(drop=True, inplace=True)  #resets index on both
             test.reset_index(drop=True, inplace=True)
             self.train(train)
-            self.test(test)
+            avgerror += self.test(test)
+        print('Average Error', avgerror/10)
 
     def train(self, train):
+        epochs = 30     #TUNE
+        print('epochs', epochs)
         self.NN = self.initialNN
-        for row, trainpoints in train.iterrows():    #iterate through training data points
-           node_values = self.feedforward(trainpoints)
-           error = self.backerror(node_values, trainpoints['class'])
-           self.backpropagate(error, node_values, trainpoints)
+        for i in range(epochs):
+            train = train.sample(frac=1).reset_index(drop=True)
+            for row, trainpoints in train.iterrows():    #iterate through training data points
+               node_values = self.feedforward(trainpoints)
+               error = self.backerror(node_values, trainpoints['class'])
+               self.backpropagate(error, node_values, trainpoints)
 
     def test(self, test):
         tot_error = 0
-        tot = 0
         for row, testpoints in test.iterrows():
             node_values = self.feedforward(testpoints)
             tot_error += self.calcerror(node_values[-1], testpoints['class'])
-            if self.classes.index(testpoints['class']) == node_values[-1].index(max(node_values[-1])):
-                tot += 1
-        print(tot/len(test))
-        print(-tot_error)
+        print(tot_error/len(test))
+        return(tot_error/len(test))
 
     def calcerror(self, output, expected):
         error = 0
-        for node in range(len(output)):
-            outputindex = output.index(output[node])
-            inputindex = self.classes.index(expected)
-            if outputindex == inputindex:
-                rt = 1
-            if outputindex != inputindex:
-                rt = 0
-            error += (rt * math.log(output[node])) + ((1 - rt) * math.log(1 - output[node]))
+        if self.classification == 'classification':
+            for node in range(len(output)):
+                outputindex = output.index(output[node])
+                inputindex = self.classes.index(expected)
+                if outputindex == inputindex:
+                    rt = 1
+                if outputindex != inputindex:
+                    rt = 0
+                error -= (rt * math.log10(output[node])) #+ ((1 - rt) * math.log(1 - output[node]))
+        if self.classification == 'regression':
+            error = ((float(output[0]) - float(expected)) ** 2) / 2      #I BELIVE MAYBE NOT
         return(error)
 
     def feedforward(self, trainpoint):
@@ -91,14 +101,18 @@ class NeuralNet():
             outputarray[-1] = output
         return(outputarray)
 
-
     def backpropagate(self, deltas, node_values, trainpoints):
-        eta = .7        #learning rate
+        eta = .5        #learning rate
+        mf = 20         #momentum factor
         change = self.deltaW(eta, deltas, node_values, trainpoints)
         for layer in range(len(self.NN)):
             for node in range(len(self.NN[layer])):
                 for weight in range(len(self.NN[layer][node])):
-                    self.NN[layer][node][weight] += change[layer][node][weight]
+                    if self.pastError == None:
+                        self.NN[layer][node][weight] += change[layer][node][weight]
+                    else:
+                        self.NN[layer][node][weight] += change[layer][node][weight] + (mf * self.pastError[layer][node][weight])
+        self.pastError = change
 
     def deltaW(self, learn_rate, deltas, node_values, trainpoints):
         change = []
@@ -134,7 +148,9 @@ class NeuralNet():
 
     def activation(self, dot):
         if self.classification == "classification":
-            return 1/(1 + np.exp(np.negative(dot)))
+            neg = np.negative(dot).astype('float128')
+            val = 1/(1 + np.exp(neg))
+            return val
         if self.classification == 'regression':
             return dot
 
@@ -146,20 +162,23 @@ class NeuralNet():
             if output[-1] == output[layer]: #if output layer, calculate error of output nodes
                 nodeerror = []
                 for node in range(len(output[layer])):
-                    outputindex = output[layer].index(output[layer][node])
-                    inputindex = self.classes.index(expected)
-                    if outputindex == inputindex:
-                        rt = 1
-                    if outputindex != inputindex:
-                        rt = 0
-                    error = rt - output[layer][node]
+                    if self.classification == 'classification':
+                        outputindex = output[layer].index(output[layer][node])
+                        inputindex = self.classes.index(expected)
+                        if outputindex == inputindex:
+                            expected_val = 1
+                        if outputindex != inputindex:
+                            expected_val = 0
+                    if self.classification == 'regression':
+                        expected_val = float(expected)
+                    error = expected_val - output[layer][node]        #CHANGING HERE
                     tot_error += error
                     nodeerror.append(error)
             else:   #if hidden layer use delta rule to calculate delta or error of hidden nodes
                 for node in range(len(output[layer])):
                     error = 0
-                    for errornode in range(len(output[layer - 1])):
-                        for weight in reversed(range(len(self.NN[layer][node]))):
+                    for errornode in range(len(errorarr[layer - 1])):
+                        for weight in range(len(self.NN[layer][node])):
                             error += self.NN[layer][node][weight] * errorarr[layer - 1][errornode]  #summation of weight between node and node of next layer multiplied by error of next node
                         nodeerror.append(error)
 
@@ -172,6 +191,9 @@ class NeuralNet():
     def derivative(self, output):
         if self.classification == 'classification':
             return output * (1 - output)
+        if self.classification == 'regression':
+            return 1
+
 
 
 
