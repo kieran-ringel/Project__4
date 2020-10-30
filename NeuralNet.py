@@ -47,7 +47,7 @@ class NeuralNet:
         print('Average Error', avgerror/10)
 
     def train(self, train):
-        epochs = 30     #TUNE
+        epochs = 1     #TUNE
         print('epochs', epochs)
         self.NN = self.initialNN
         for i in range(epochs):
@@ -89,7 +89,7 @@ class NeuralNet:
                 node_vals = new_node_vals
             new_node_vals = []
             for node in range(len(self.NN[layer])):
-                cur_node = np.dot(self.NN[layer][node][:-1], node_vals) + self.NN[layer][node][-1]
+                cur_node = np.dot(self.NN[layer][node][:-1], node_vals[:]) + self.NN[layer][node][-1]
                 new_node_vals.append(cur_node)
             new_node_vals = self.activation(new_node_vals)
             outputarray.append(list(new_node_vals))
@@ -102,8 +102,8 @@ class NeuralNet:
         return(outputarray)
 
     def backpropagate(self, deltas, node_values, trainpoints):
-        eta = .5        #learning rate
-        mf = 20         #momentum factor
+        eta = .000001        #learning rate
+        mf = 0         #momentum factor
         change = self.deltaW(eta, deltas, node_values, trainpoints)
         for layer in range(len(self.NN)):
             for node in range(len(self.NN[layer])):

@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import random
 import math
 
@@ -15,7 +16,7 @@ class Org():
     moves the class to the last column.
     Machines removes the ERP(estimated relative performance from the original article) column.
     Glass removes the index in the first column."""
-    def open(self):
+    def open(self, categorical):
         file = open(self.file_name, 'r')        #opens file
         df = pd.DataFrame([line.strip('\n').split(',') for line in file.readlines()])   #splits file by lines and commas
 
@@ -39,10 +40,26 @@ class Org():
             df = df.reset_index(drop=True)          #reset axis
 
         df.columns = range(df.shape[1])
-        df.columns = [*df.columns[:-1], "class"]    #give column containing class label 'class'
+        df.columns = [*df.columns[:-1], "class"]  # give column containing class label 'class'
         df = self.missingData(df)
         df = self.normalize(df)
+        df = self.onehot(df, categorical)
+        df.columns = range(df.shape[1])
+        df.columns = [*df.columns[:-1], "class"]  # give column containing class label 'class'
         return(df)      #returns edited file
+
+    def onehot(self, df, categorical):
+        for column in categorical:
+            attribute = list(df[column].unique())
+            for att in attribute:
+                df.insert(0, att, '')
+                for row in range(len(df[column])):
+                    if df[column][row] == att:
+                        df.at[row, att] = 1
+                    else:
+                        df.at[row, att] = 0
+            df = df.drop(column, axis=1)
+        return(df)
 
     def missingData(self, df):
         for column in range(df.shape[1] - 1):
