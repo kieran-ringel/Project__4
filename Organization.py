@@ -10,13 +10,15 @@ class Org():
         self.class_loc = class_loc
         self.discrete = discrete
 
-    """Kieran Ringel
-    Takes all files and standardized them so they are formatted the same.
-    This removes the header included on any file, and
-    moves the class to the last column.
-    Machines removes the ERP(estimated relative performance from the original article) column.
-    Glass removes the index in the first column."""
-    def open(self, categorical):
+
+    def open(self):
+        """Kieran Ringel
+            Takes all files and standardized them so they are formatted the same.
+            This removes the header included on any file, and
+            moves the class to the last column.
+            Machines removes the ERP(estimated relative performance from the original article) column as well as
+            the manufacturer and vendor name since those do not affect performance.
+            Glass removes the index in the first column."""
         file = open(self.file_name, 'r')        #opens file
         df = pd.DataFrame([line.strip('\n').split(',') for line in file.readlines()])   #splits file by lines and commas
 
@@ -39,33 +41,38 @@ class Org():
             df = df.drop(9, axis=1)                 #remove column with ERP
             df = df.reset_index(drop=True)          #reset axis
 
-        df.columns = range(df.shape[1])
+        df.columns = range(df.shape[1])             #resets column values
         df.columns = [*df.columns[:-1], "class"]  # give column containing class label 'class'
         df = self.missingData(df)
         df = self.normalize(df)
-        df = self.onehot(df, categorical)
-        df.columns = range(df.shape[1])
+        df = self.onehot(df, self.discrete)
+        df.columns = range(df.shape[1])             #resets column values
         df.columns = [*df.columns[:-1], "class"]  # give column containing class label 'class'
         return(df)      #returns edited file
 
     def onehot(self, df, categorical):
-        for column in categorical:
-            attribute = list(df[column].unique())
-            for att in attribute:
-                df.insert(0, att, '')
-                for row in range(len(df[column])):
-                    if df[column][row] == att:
-                        df.at[row, att] = 1
-                    else:
-                        df.at[row, att] = 0
-            df = df.drop(column, axis=1)
+        '''Kieran Ringel
+        One hot encodes all categorical values'''
+        if categorical != [-1]:
+            for column in categorical:
+                attribute = list(df[column].unique())   #gets list of all possible categories
+                for att in attribute:
+                    df.insert(0, att, '')               #for each category make a column, named by the attribute, to the df
+                    for row in range(len(df[column])):
+                        if df[column][row] == att:      #iterates through category columns, if the datapoint is of that column then it is a 1
+                            df.at[row, att] = 1
+                        else:
+                            df.at[row, att] = 0     #otherwise it is a zero
+                df = df.drop(column, axis=1)        #gets rid of inital categorical column
         return(df)
 
     def missingData(self, df):
+        """Kieran Ringel
+        If a data point is missing '?' then it is replaces by the most common value for that attribute given its class"""
         for column in range(df.shape[1] - 1):
             for row in range(df.shape[0]):
                 if df[column][row] == '?':
-                    df[column][row] = df[df['class'] == df['class'][row]][column].mode()
+                    df[column][row] = df[df['class'] == df['class'][row]][column].mode()    #makes df that only contains resulting class, then get mode of column with '?'
         return(df)
 
     def normalize(self, file):
