@@ -6,11 +6,11 @@ class Feedforward:
         self.classification = classification
 
     def feedforward(self, trainpoint):
-        print('Got to FF')
         '''Kieran Ringel
         Feeds fowards data by getting the dot product of the input values and the weights on those input values
         That dot product is multipled by the activation function
         that resulting node value is then 'fed forward' through the network until the last layer'''
+        #print(self.NN)
         outputarray = []
         for layer in range(self.hlayers + 1):  # iterate through layers hlayers + 1 for output layer
             if layer == 0:
@@ -18,7 +18,6 @@ class Feedforward:
             else:
                 node_vals = new_node_vals  # otherwise the inputs are the outputs of the last layer
             new_node_vals = []
-            print("Input", node_vals)
             for node in range(len(self.NN[layer])):  # for each node in the layer
                 # gets dot product of weights and node values and then adds the bias node
                 cur_node = np.dot(self.NN[layer][node][:-1], node_vals[:]) + self.NN[layer][node][-1]
@@ -30,7 +29,6 @@ class Feedforward:
             outputarray[-1] = output
         if self.classification == 'regression':
             outputarray[-1] = new_node_vals
-        print("Output Node Values", outputarray)
         return (outputarray)
 
     def activation(self, dot):

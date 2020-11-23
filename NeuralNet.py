@@ -1,21 +1,27 @@
 import pandas as pd
-import numpy as np
 import math
 
-#changess
 from NN import NN
 from Feedforward import Feedforward as ff
 from Backpropagate import Backpropagate as bp
+from GeneticAlgorithm import GeneticAlgorithm as ga
+from DifferentialEvolution import DifferentialEvoluation as de
 class NeuralNet:
-    def __init__(self, file, hlayers, hnodes, classification):
+    def __init__(self, file, hlayers, hnodes, classification, type, population):
         print('hidden layers', hlayers)
         print('hidden nodes', hnodes)
         self.file = file
         self.hlayers = hlayers
         self.hnodes = hnodes
-        self.pastError = None       #initalizes past error to None so that for the first data point momentum cannot be calculated
+        self.type = type
+        self.population = population
+        self.pastError = None       #initalizes past error to None so that for the first data point momentum
+                                    # cannot be calculated
         self.classification = classification
-        self.initialNN = self.initNN(file, hlayers, hnodes, classification)
+        self.temp = []
+        for pop in range(population):
+            self.temp.append(self.initNN(file, hlayers, hnodes, classification))
+        print('what we want', self.temp[0])
         self.tenfold(file)
 
 
@@ -48,22 +54,39 @@ class NeuralNet:
             train = pd.concat(train_list)           #concatanates the 2 parts of the test set
             train.reset_index(drop=True, inplace=True)  #resets index on both
             test.reset_index(drop=True, inplace=True)
-            self.train(train)
+            self.train(train, foldnum)
             avgerror += self.test(test)
         print('Average Error', avgerror/10)
 
-    def train(self, train):
+    def train(self, train, foldnum):
         '''Kieran Ringel
         Calls needed methods to feedforward and then back propagate the error'''
+        #print(self.initialNN1)
         epochs = 1     #TUNE
-        #print('epochs', epochs)
-        self.NN = self.initialNN    #sets NN to initalized NN, so for cross validation each fold starts with a randomly initalized NN
-        for i in range(epochs): #iterates for a number of epochs, generally kept low to prevent overfitting
-            train = train.sample(frac=1).reset_index(drop=True)
-            for row, trainpoints in train.iterrows():    #iterate through training data points
-               node_values = ff.feedforward(self, trainpoints)  #feeds forward to calculate all node values for NN
-               error = bp.backerror(self, node_values, trainpoints['class'])    #backpropagates the error on the output nodes
-               bp.backpropagate(self, error, node_values, trainpoints)  #uses backpropagated error to change weights on the NN
+        self.initialNN = self.temp
+        errorarray = []
+        for pop in range(self.population):
+            GAerror = 0
+            self.NN = self.initialNN[pop]    #sets NN to initalized NN, so for cross validation each fold starts with
+                                            # a randomly initalized NN
+            for i in range(epochs): #iterates for a number of epochs, generally kept low to prevent overfitting
+                train = train.sample(frac=1).reset_index(drop=True)
+                for row, trainpoints in train.iterrows():    #iterate through training data points
+                   node_values = ff.feedforward(self, trainpoints)  #feeds forward to calculate all node values for NN
+                   if self.type == "BP":
+                       error = bp.backerror(self, node_values, trainpoints['class'])    #backpropagates
+                                                                                        # the error on the output nodes
+                       bp.backpropagate(self, error, node_values, trainpoints)  #uses backpropagated
+                                                                                # error to change weights on the NN
+                   if self.type == "GA":
+                       GAerror += self.calcerror(node_values[-1], trainpoints['class'])
+            if self.type == "GA":
+                GAerror /= epochs * len(train)
+                errorarray.append(GAerror)
+        if self.type == "GA":
+            self.NN = ga.__init__(self, self.initialNN, train, epochs, errorarray)
+        if self.type == "DE":
+            de.__init__(self, self.initialNN, train, epochs)
 
     def test(self, test):
         '''Kieran Ringel
@@ -72,7 +95,7 @@ class NeuralNet:
         for row, testpoints in test.iterrows():
             node_values = ff.feedforward(self, testpoints)  #feedsforward to calculated all nodes for NN
             tot_error += self.calcerror(node_values[-1], testpoints['class'])   #looks at output nodes to calculate error
-        print(tot_error/len(test))
+        print('error', tot_error/len(test))
         return(tot_error/len(test))
 
     def calcerror(self, output, expected):

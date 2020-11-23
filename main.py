@@ -13,17 +13,16 @@ def main():
     to be performed.
     """
 
-
     print('Breast Cancer')
     cancer = Org('Data/breast-cancer-wisconsin.data', [-1], -1, [-1])
     df = cancer.open()
     # ##NN(file, number hidden layers, number hidden nodes per layer)
-    NeuralNet(df, 2, 13, 'classification')
+    NeuralNet(df, 0, 5, 'classification', 'GA', 10)
 
     #print('glass')
     #glass = Org('Data/glass.data', [-1], -1, [-1])
     #df = glass.open()
-    #NeuralNet(df, 2, 6, 'classification')
+    #NeuralNet(df, 0, 6, 'classification', "GA", 10)
 
     #print('soybean')
     #soybean = Org('Data/soybean-small.data', [-1], -1, [-1])
