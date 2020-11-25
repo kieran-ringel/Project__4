@@ -6,6 +6,7 @@ from Feedforward import Feedforward as ff
 from Backpropagate import Backpropagate as bp
 from GeneticAlgorithm import GeneticAlgorithm as ga
 from DifferentialEvolution import DifferentialEvoluation as de
+from PSO import PSO as pso !!!!!!!!!
 class NeuralNet:
     def __init__(self, file, hlayers, hnodes, classification, type, population):
         print('hidden layers', hlayers)
@@ -19,9 +20,8 @@ class NeuralNet:
                                     # cannot be calculated
         self.classification = classification
         self.temp = []
-        for pop in range(population):
+        for pop in range(population):                                               #creates an array of of NN
             self.temp.append(self.initNN(file, hlayers, hnodes, classification))
-        print('what we want', self.temp[0])
         self.tenfold(file)
 
 
@@ -73,20 +73,22 @@ class NeuralNet:
                 train = train.sample(frac=1).reset_index(drop=True)
                 for row, trainpoints in train.iterrows():    #iterate through training data points
                    node_values = ff.feedforward(self, trainpoints)  #feeds forward to calculate all node values for NN
+                   if self.type == "PSO": !!!!!!!!!
+                       pso.pso(self, node_values, trainpoints)
                    if self.type == "BP":
                        error = bp.backerror(self, node_values, trainpoints['class'])    #backpropagates
                                                                                         # the error on the output nodes
                        bp.backpropagate(self, error, node_values, trainpoints)  #uses backpropagated
                                                                                 # error to change weights on the NN
                    if self.type == "GA":
-                       GAerror += self.calcerror(node_values[-1], trainpoints['class'])
+                       GAerror += self.calcerror(node_values[-1], trainpoints['class']) #used to calculated error for each NN for GA
             if self.type == "GA":
                 GAerror /= epochs * len(train)
-                errorarray.append(GAerror)
+                errorarray.append(GAerror)           #adds to array of error correlating to initialized NNs
         if self.type == "GA":
-            self.NN = ga.__init__(self, self.initialNN, train, epochs, errorarray)
+            self.NN = ga.__init__(self, self.initialNN, train, epochs, errorarray)  #calls GA
         if self.type == "DE":
-            de.__init__(self, self.initialNN, train, epochs)
+            self.NN = de.__init__(self, self.initialNN, train, epochs)    #calls DE
 
     def test(self, test):
         '''Kieran Ringel

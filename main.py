@@ -9,15 +9,20 @@ def main():
     encoding can be applied.
     The next line calls to open the file and returns the dataframe of the file
     The final line creates an instance of NeuralNet with the arguments being the dataframe, the number
-    of hidden layers, the number of hidden nodes per layer and whether classification or regression are
-    to be performed.
+    of hidden layers, the number of hidden nodes per layer, whether classification or regression are
+    to be performed, how the weights are being trained (GA, DE, BP, PSO), and the population size (1 for algorithms that
+    don't need a population).
     """
 
     print('Breast Cancer')
+    print("generations: 30 \n"
+          "beta = 1.5 \n"
+          "pop = 30 \n"
+          "pr = .3")
     cancer = Org('Data/breast-cancer-wisconsin.data', [-1], -1, [-1])
     df = cancer.open()
     # ##NN(file, number hidden layers, number hidden nodes per layer)
-    NeuralNet(df, 0, 5, 'classification', 'GA', 10)
+    NeuralNet(df, 0, 12, 'classification', 'DE', 30)
 
     #print('glass')
     #glass = Org('Data/glass.data', [-1], -1, [-1])
