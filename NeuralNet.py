@@ -6,7 +6,7 @@ from Feedforward import Feedforward as ff
 from Backpropagate import Backpropagate as bp
 from GeneticAlgorithm import GeneticAlgorithm as ga
 from DifferentialEvolution import DifferentialEvoluation as de
-#from PSO import PSO as pso #!!!!!!!!!
+from PSO import PSO as pso 
 class NeuralNet:
     def __init__(self, file, hlayers, hnodes, classification, type, population):
         print('hidden layers', hlayers)
@@ -68,6 +68,10 @@ class NeuralNet:
             self.temp.append(self.initNN(self.file, self.hlayers, self.hnodes, self.classification))
         self.initialNN = self.temp
         errorarray = []
+
+        if self.type == "PSO":
+            pso.__init__(self, self.initialNN, self.population, epochs, train)
+        
         for pop in range(self.population):
             GAerror = 0
             self.NN = self.initialNN[pop]    #sets NN to initalized NN, so for cross validation each fold starts with
@@ -76,8 +80,7 @@ class NeuralNet:
                 train = train.sample(frac=1).reset_index(drop=True)
                 for row, trainpoints in train.iterrows():    #iterate through training data points
                    node_values = ff.feedforward(self, trainpoints)  #feeds forward to calculate all node values for NN
-                  # if self.type == "PSO": #!!!!!!!!!
-                   #    pso.pso(self, node_values, trainpoints)
+                  
                    if self.type == "BP":
                        error = bp.backerror(self, node_values, trainpoints['class'])    #backpropagates
                                                                                         # the error on the output nodes
