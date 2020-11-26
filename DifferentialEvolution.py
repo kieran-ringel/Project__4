@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 from Feedforward import Feedforward as ff
 
@@ -15,7 +16,7 @@ class DifferentialEvoluation:
         For each generation, it goes through each NN in the population and then mutates it and performs crossover, if
         the resulting trial vector has better fitness it replaces the target vector, otherwise the target vector remains
         in the population.'''
-        generations = 30
+        generations = 25
         for i in range(generations):    #for each generation updates the population
             for target in initialNN:    #goes through each NN in the population
                 trial = DifferentialEvoluation.mutation(self, target)
@@ -25,7 +26,7 @@ class DifferentialEvoluation:
     def mutation(self, target):
         '''Kieran Ringel
         Gets three random distinct NN from the population. The resulting trial vector is the first NN1 + beta(NN2-NN3)'''
-        beta = 1.3  #TUNE [0,2]
+        beta = 1.7  #TUNE [0,2]
         distinct = [None] * 3
         count = 0
         while count != 3:   #gets three random NN
@@ -49,14 +50,14 @@ class DifferentialEvoluation:
         Binomial crossover is then performed, for each weight a random number is generated, if it is below or equals
         hyperparameter pr then the weight from the target vector is used, otherwise the weight from the trial
         vector is used.'''
-        pr = .3     #TUNE [0,1]
+        pr = .75     #TUNE [0,1]
         newNN = []
         for layer in range(len(target)):
             newLayer = []
             for node in range(len(target[layer])):
                 newNode = []
                 for weight in range(len(target[layer][node])):
-                    choice = np.random.randint(0, 1)
+                    choice = random.uniform(0, 1)
                     if choice <= pr:    #if randomly selected value is less than or = to hyperparameter pr
                         newNode.append(target[layer][node][weight]) #weight from target is used
                     else:

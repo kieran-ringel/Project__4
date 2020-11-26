@@ -15,40 +15,55 @@ def main():
     """
 
     print('Breast Cancer')
-    print("generations: 30 \n"
-          "beta = 1.5 \n"
-          "pop = 30 \n"
-          "pr = .3")
+    print("generations: 5 \n"
+            "pop = 25 \n"
+           "ts = 4 \n"
+         "weight = 4 \n"
+         "mutations = 10")
+    #print("generations: 40 \n"
+    #      "beta = 1.7 \n"
+     #     "pop = 25 \n"
+      #    "pr = .7")
     cancer = Org('Data/breast-cancer-wisconsin.data', [-1], -1, [-1])
     df = cancer.open()
     # ##NN(file, number hidden layers, number hidden nodes per layer)
-    NeuralNet(df, 0, 12, 'classification', 'DE', 30)
+    NeuralNet(df, 0, 12, 'classification', 'DE', 20)
 
     #print('glass')
     #glass = Org('Data/glass.data', [-1], -1, [-1])
     #df = glass.open()
-    #NeuralNet(df, 0, 6, 'classification', "GA", 10)
+    #NeuralNet(df, 2, 6, 'classification', "DE", 5)
 
     #print('soybean')
     #soybean = Org('Data/soybean-small.data', [-1], -1, [-1])
     #df = soybean.open()
-    #NeuralNet(df, 2, 11, 'classification')
+    #NeuralNet(df, 0, 17, 'classification', "DE", 30)
 
     #print('abalone')
+    #print("generations: 20 \n"
+    #        "pop = 25 \n"
+     #       "ts = 4 \n"
+      #      "weight = 4 \n"
+       #     "mutations = 30")
     #abalone = Org('Data/abalone.data', [-1], -1, [0])
     #df = abalone.open()
-    #NeuralNet(df, 2, 2, 'regression')
+    #NeuralNet(df, 2, 1, 'regression', 'GA', 25)
 
-    #print('machine')
-    #machine = Org('Data/machine.data', [-1], -1, [-1])
-    #df = machine.open()
-    #NeuralNet(df, 2, 3, 'regression')
-    #print(df)
+    print('machine')
+    machine = Org('Data/machine.data', [-1], -1, [-1])
+    df = machine.open()
+    NeuralNet(df, 2, 3, 'regression')
+    print(df)
 
     #print('forest')
-    #forest = Org('Data/forestfires.data', [0], -1, [2,3])
+    #print("generations: 20 \n"
+    #        "pop = 25 \n"
+    #       "ts = 4 \n"
+     #     "weight = 4 \n"
+    #     "mutations = 30")
+    #forest = Org('Data/forestfires.data', [0], -1, [-1])
     #df = forest.open()
-    #NeuralNet(df, 0, 3, 'regression')
+    #NeuralNet(df, 0, 3, 'regression', 'BP', 10)
 
 if __name__ == '__main__':
     main()

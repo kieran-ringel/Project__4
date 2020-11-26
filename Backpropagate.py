@@ -6,7 +6,7 @@ class Backpropagate:
         '''Kieran Ringel
         Over arching function to backpropagate the error that has been calculated for each node
         Used to allow momentum to occur and tune learning rate'''
-        eta = .07  # learning rate TUNE
+        eta = .0000007  # learning rate TUNE
         mf = 14  # momentum factor TUNE
         # gets the delta w value for each weight
         change = Backpropagate.deltaW(self, eta, deltas, node_values, trainpoints)

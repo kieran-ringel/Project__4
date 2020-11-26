@@ -6,7 +6,7 @@ from Feedforward import Feedforward as ff
 from Backpropagate import Backpropagate as bp
 from GeneticAlgorithm import GeneticAlgorithm as ga
 from DifferentialEvolution import DifferentialEvoluation as de
-from PSO import PSO as pso !!!!!!!!!
+#from PSO import PSO as pso #!!!!!!!!!
 class NeuralNet:
     def __init__(self, file, hlayers, hnodes, classification, type, population):
         print('hidden layers', hlayers)
@@ -54,15 +54,18 @@ class NeuralNet:
             train = pd.concat(train_list)           #concatanates the 2 parts of the test set
             train.reset_index(drop=True, inplace=True)  #resets index on both
             test.reset_index(drop=True, inplace=True)
-            self.train(train, foldnum)
+            self.train(train)
             avgerror += self.test(test)
         print('Average Error', avgerror/10)
 
-    def train(self, train, foldnum):
+    def train(self, train):
         '''Kieran Ringel
         Calls needed methods to feedforward and then back propagate the error'''
         #print(self.initialNN1)
         epochs = 1     #TUNE
+        self.temp = []
+        for pop in range(self.population):  # creates an array of of NN
+            self.temp.append(self.initNN(self.file, self.hlayers, self.hnodes, self.classification))
         self.initialNN = self.temp
         errorarray = []
         for pop in range(self.population):
@@ -73,8 +76,8 @@ class NeuralNet:
                 train = train.sample(frac=1).reset_index(drop=True)
                 for row, trainpoints in train.iterrows():    #iterate through training data points
                    node_values = ff.feedforward(self, trainpoints)  #feeds forward to calculate all node values for NN
-                   if self.type == "PSO": !!!!!!!!!
-                       pso.pso(self, node_values, trainpoints)
+                  # if self.type == "PSO": #!!!!!!!!!
+                   #    pso.pso(self, node_values, trainpoints)
                    if self.type == "BP":
                        error = bp.backerror(self, node_values, trainpoints['class'])    #backpropagates
                                                                                         # the error on the output nodes
@@ -89,10 +92,12 @@ class NeuralNet:
             self.NN = ga.__init__(self, self.initialNN, train, epochs, errorarray)  #calls GA
         if self.type == "DE":
             self.NN = de.__init__(self, self.initialNN, train, epochs)    #calls DE
+            print('returned best', self.NN)
 
     def test(self, test):
         '''Kieran Ringel
         Calls methods to feed forward through trained NN and then calculated the error on the testing set'''
+        print('testing best', self.NN)
         tot_error = 0
         for row, testpoints in test.iterrows():
             node_values = ff.feedforward(self, testpoints)  #feedsforward to calculated all nodes for NN

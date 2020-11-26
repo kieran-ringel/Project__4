@@ -18,7 +18,7 @@ class GeneticAlgorithm:
         produce a fitter NN. The new population then replaces the old. Once all the generations have gone through, the
         best NN is returned.'''
         maxfitness = 999999      #initialized to a high number so it will be replaced
-        generations = 30        #TUNE
+        generations = 20        #TUNE
         for i in range(generations):    #loops through to keep updating best NN every generation as well as the population
             newerrorarray = []
             while len(newlistNN) < len(initialNN):  #uses generational replacement
@@ -49,11 +49,11 @@ class GeneticAlgorithm:
         the loss list. The minimum loss in that list is then returned. The NN correlating to that loss is then
         added to the list of parents. Here 2 parents are used because that is what was discussed in class and
         it is what we are biologically familiar with."""
-        tournamentsize = 8  #TUNE
+        tournamentsize = 4  #TUNE
         parents = []
         for parent in range(2):     #gets 2 parents as we typically think of
             tournament = random.sample(errorarray, tournamentsize)  #selects random errors that correlated to NN to fill tournament
-            selection = min(tournament)                                #gets smallest error
+            selection = min(tournament)         #gets smallest error
             parents.append(NN[errorarray.index(selection)]) #add the parent that correlated to that smallest error
         return(parents) #returns list of 2 parents
 
@@ -79,8 +79,8 @@ class GeneticAlgorithm:
         For each mutation a random weight is selected and a random number is selected from a uniform distribution,
         this number is then multiplied by the mutation weight and is added to a random weight within the NN.
         '''
-        numbermutations = 10    #TUNE
-        weight = 5          #TUNE weight of the mutations
+        numbermutations = 30    #TUNE
+        weight = 4          #TUNE weight of the mutations
         for mutate in range(numbermutations):
             random_layer = np.random.randint(0, len(child))
             random_node = np.random.randint(0, len(child[random_layer]))

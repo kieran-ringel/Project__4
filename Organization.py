@@ -41,6 +41,47 @@ class Org():
             df = df.drop(9, axis=1)                 #remove column with ERP
             df = df.reset_index(drop=True)          #reset axis
 
+        if self.file_name == "Data/forestfires.data":   #forestfires is the only dataset that contains cyclic categorical values
+            for row in range(df.shape[0]):  #goes through data set and changes months and days to cyclic values
+                if df[2][row] == "jan":
+                    df[2][row] = math.sin(2*math.pi*(1/12))
+                if df[2][row] == "feb":
+                    df[2][row] = math.sin(2*math.pi*(2/12))
+                if df[2][row] == "mar":
+                    df[2][row] = math.sin(2*math.pi*(3/12))
+                if df[2][row] == "apr":
+                    df[2][row] = math.sin(2*math.pi*(4/12))
+                if df[2][row] == "may":
+                    df[2][row] = math.sin(2*math.pi*(5/12))
+                if df[2][row] == "jun":
+                    df[2][row] = math.sin(2*math.pi*(6/12))
+                if df[2][row] == "jul":
+                    df[2][row] = math.sin(2*math.pi*(7/12))
+                if df[2][row] == "aug":
+                    df[2][row] = math.sin(2*math.pi*(8/12))
+                if df[2][row] == "sep":
+                    df[2][row] = math.sin(2*math.pi*(9/12))
+                if df[2][row] == "oct":
+                    df[2][row] = math.sin(2*math.pi*(10/12))
+                if df[2][row] == "nov":
+                    df[2][row] = math.sin(2*math.pi*(11/12))
+                if df[2][row] == "dec":
+                    df[2][row] = math.sin(2*math.pi*(12/12))
+                if df[3][row] == "mon":
+                    df[3][row] = math.sin(2*math.pi*(1/7))
+                if df[3][row] == "tue":
+                    df[3][row] = math.sin(2*math.pi*(2/7))
+                if df[3][row] == "wed":
+                    df[3][row] = math.sin(2*math.pi*(3/7))
+                if df[3][row] == "thu":
+                    df[3][row] = math.sin(2*math.pi*(4/7))
+                if df[3][row] == "fri":
+                    df[3][row] = math.sin(2*math.pi*(5/7))
+                if df[3][row] == "sat":
+                    df[3][row] = math.sin(2*math.pi*(6/7))
+                if df[3][row] == "sun":
+                    df[3][row] = math.sin(2*math.pi*(7/7))
+
         df.columns = range(df.shape[1])             #resets column values
         df.columns = [*df.columns[:-1], "class"]  # give column containing class label 'class'
         df = self.missingData(df)
